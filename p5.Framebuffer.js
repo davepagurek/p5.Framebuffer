@@ -44,7 +44,6 @@ class RawTextureWrapper extends p5.Texture {
   }
 
   _getTextureDataFromSource() {
-    console.log(this.src)
     return this.src
   }
 
