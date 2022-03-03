@@ -1,0 +1,19 @@
+{
+  "name": "@davepagurek/p5.Framebuffer",
+  "version": "0.0.1",
+  "main": "p5.Framebuffer.js",
+  "author": "Dave Pagurek <dave@davepagurek.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davepagurek/p5.Framebuffer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/davepagurek/p5.Framebuffer/issues"
+  },
+  "homepage": "https://github.com/davepagurek/p5.Framebuffer",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {},
+  "files": []
+}
