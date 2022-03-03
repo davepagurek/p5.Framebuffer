@@ -51,7 +51,14 @@ Notes:
 - When you `resizeCanvas`, the Framebuffer will automatically resize accordingly. You probably will want to clear it and redraw to it if you had a texture cached.
 
 ## Examples
+In this repo:
 - `examples/simple`: Drawing both the depth and color buffers of a rotating cube
   - On the p5 editor: https://editor.p5js.org/davepagurek/sketches/cmAwY6d5W
+
+External:
+- <a href="https://openprocessing.org/sketch/1460113">Modern Vampires of the City</a>
+  - Uses the depth buffer to create a fog effect
+- <a href="https://openprocessing.org/sketch/1418669">Descent</a>
+  - Uses the depth buffer in a focal blur shader
 
 More coming soon!
