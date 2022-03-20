@@ -97,6 +97,7 @@ class Framebuffer {
     const width = this._renderer.width
     const height = this._renderer.height
     const density = this._renderer._pInst._pixelDensity
+    const hasAlpha = this._renderer._pInst._glAttributes.alpha
 
     const colorTexture = gl.createTexture()
     if (!colorTexture) {
@@ -111,11 +112,11 @@ class Framebuffer {
     gl.texImage2D(
       gl.TEXTURE_2D,
       0,
-      gl.RGBA,
+      hasAlpha ? gl.RGBA : gl.RGB,
       width * density,
       height * density,
       0,
-      gl.RGBA,
+      hasAlpha ? gl.RGBA : gl.RGB,
       gl.UNSIGNED_BYTE,
       null,
     )

@@ -9,6 +9,7 @@ function draw() {
   // Draw a sphere to the Framebuffer
   fbo.draw(() => {
     clear()
+    background(255)
     push()
     noStroke()
     fill(255, 0, 0)
@@ -20,6 +21,7 @@ function draw() {
 
   // Do something with fbo.color or dbo.depth
   clear()
+  background(255)
   push()
   noStroke()
   
