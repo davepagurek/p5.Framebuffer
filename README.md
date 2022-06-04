@@ -9,6 +9,9 @@ A Framebuffer is kind of like a `p5.Graphics`: it lets you draw to a canvas, and
 
 Read more about the motivation for this and how focal blur shaders work in <a href="https://www.davepagurek.com/blog/depth-of-field/">this blog post on the subject.</a>
 
+![image](https://user-images.githubusercontent.com/5315059/172021218-b50f6693-40a6-49a1-99af-8dd9d73f00eb.png)
+<small><em>Above: a screenshot from [a sketch](https://openprocessing.org/sketch/1590159) using p5.Framebuffer to blur out-of-focus areas</em></small>
+
 ## Get the library
 
 Add the library to your source code, *after* loading p5 but *before* loading your own code:
@@ -63,9 +66,14 @@ Notes:
 ## Examples
 In this repo:
 - `examples/simple`: Drawing both the depth and color buffers of a rotating cube
+  - Live: https://davepagurek.github.io/p5.Framebuffer/examples/simple
   - On the p5 editor: https://editor.p5js.org/davepagurek/sketches/cmAwY6d5W
+- `examples/blur`: Using the depth map to blur out-of-focus parts of the sketch
+  - Live: https://davepagurek.github.io/p5.Framebuffer/examples/blur
 
 External:
+- <a href="https://openprocessing.org/sketch/1590159">Train Knots</a>
+  - Uses the depth buffer in a focal blur shader
 - <a href="https://openprocessing.org/sketch/1460113">Modern Vampires of the City</a>
   - Uses the depth buffer to create a fog effect
 - <a href="https://openprocessing.org/sketch/1418669">Descent</a>
