@@ -9,13 +9,23 @@ A Framebuffer is kind of like a `p5.Graphics`: it lets you draw to a canvas, and
 
 Read more about the motivation for this and how focal blur shaders work in <a href="https://www.davepagurek.com/blog/depth-of-field/">this blog post on the subject.</a>
 
-## Usage
+## Get the library
 
 Add the library to your source code, *after* loading p5 but *before* loading your own code:
 
+### Via CDN
 ```html
-<script type="text/javascript" src="p5.Framebuffer.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.1/p5.Framebuffer.min.js"></script>
 ```
+
+### Self-hosted
+[Download the minified or unminified source code from the releases tab](https://github.com/davepagurek/p5.Framebuffer/releases/), then add it to your HTML:
+```html
+<script type="text/javascript" src="p5.Framebuffer.min.js"></script>
+```
+
+
+## Usage
 
 Create a Framebuffer in `setup` and use it in `draw`:
 
