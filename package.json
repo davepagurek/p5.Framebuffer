@@ -13,7 +13,15 @@
   },
   "homepage": "https://github.com/davepagurek/p5.Framebuffer",
   "dependencies": {},
-  "devDependencies": {},
-  "scripts": {},
-  "files": []
+  "devDependencies": {
+    "minify": "^9.0.0"
+  },
+  "scripts": {
+    "build": "minify p5.Framebuffer.js > p5.Framebuffer.min.js",
+    "publish": "npm publish --access public"
+  },
+  "files": [
+    "p5.Framebuffer.min.js",
+    "p5.Framebuffer.js"
+  ]
 }
