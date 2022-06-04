@@ -41,7 +41,7 @@ function setup() {
 }
 
 function draw() {
-  // Draw a sphere to the Framebuffer
+  // Draw a box to the Framebuffer
   fbo.draw(() => {
     clear()
     push()
