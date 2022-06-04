@@ -1,5 +1,5 @@
 {
-  "name": "@davepagurek/p5.Framebuffer",
+  "name": "@davepagurek/p5.framebuffer",
   "version": "0.0.1",
   "main": "p5.Framebuffer.js",
   "author": "Dave Pagurek <dave@davepagurek.com>",
