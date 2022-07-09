@@ -198,11 +198,17 @@ class Framebuffer {
   }
 
   draw(cb) {
-    this._renderer.GL.bindFramebuffer(
-      this._renderer.GL.FRAMEBUFFER,
-      this.framebuffer,
-    )
+    const gl = this._renderer.GL
+    const prevFramebuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer)
     cb()
-    this._renderer.GL.bindFramebuffer(this._renderer.GL.FRAMEBUFFER, null)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, prevFramebuffer)
+  }
+
+  remove() {
+    const gl = this._renderer.GL
+    this.deleteTexture(this.colorTexture)
+    this.deleteTexture(this.depthTexture)
+    gl.deleteFramebuffer(this.framebuffer)
   }
 }
