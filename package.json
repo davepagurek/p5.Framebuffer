@@ -1,6 +1,6 @@
 {
   "name": "@davepagurek/p5.framebuffer",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "p5.Framebuffer.js",
   "author": "Dave Pagurek <dave@davepagurek.com>",
   "license": "MIT",
@@ -14,7 +14,8 @@
   "homepage": "https://github.com/davepagurek/p5.Framebuffer",
   "dependencies": {},
   "devDependencies": {
-    "minify": "^9.0.0"
+    "minify": "^9.0.0",
+    "prettier": "^2.7.1"
   },
   "scripts": {
     "build:core": "minify p5.Framebuffer.js > p5.Framebuffer.core.min.js",

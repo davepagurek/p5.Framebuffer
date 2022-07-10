@@ -1,5 +1,5 @@
-const _createFramebuffer = function() {
-  const fb = new Framebuffer(this)
+const _createFramebuffer = function (options) {
+  const fb = new Framebuffer(this, options)
 
   // Extend the old resize handler to also update the size of the framebuffer
   const oldResize = this._renderer.resize
@@ -14,7 +14,7 @@ p5.prototype.createFramebuffer = _createFramebuffer
 p5.Graphics.prototype.createFramebuffer = _createFramebuffer
 
 const parentGetTexture = p5.RendererGL.prototype.getTexture
-p5.RendererGL.prototype.getTexture = function(imgOrTexture) {
+p5.RendererGL.prototype.getTexture = function (imgOrTexture) {
   if (imgOrTexture instanceof p5.Texture) {
     return imgOrTexture
   } else {
@@ -31,12 +31,7 @@ p5.RendererGL.prototype.getTexture = function(imgOrTexture) {
 // that looks like a p5 texture but that never tries to update
 // data in order to use framebuffer textures inside p5.
 class RawTextureWrapper extends p5.Texture {
-  constructor(
-    renderer,
-    obj,
-    w,
-    h,
-  ) {
+  constructor(renderer, obj, w, h) {
     super(renderer, obj)
     this.width = w
     this.height = h
@@ -64,13 +59,31 @@ class RawTextureWrapper extends p5.Texture {
 }
 
 class Framebuffer {
-  constructor(canvas) {
+  constructor(canvas, options = {}) {
     this._renderer = canvas._renderer
-
     const gl = this._renderer.GL
-    const ext = gl.getExtension('WEBGL_depth_texture')
-    if (!ext) {
+    if (!gl.getExtension('WEBGL_depth_texture')) {
       throw new Error('Unable to create depth textures in this environment')
+    }
+
+    this.colorFormat = this.glColorFormat(options.colorFormat)
+    this.depthFormat = this.glDepthFormat(options.depthFormat)
+    if (
+      (options.colorFormat === 'float' || options.depthFormat === 'float') &&
+      (!gl.getExtension('OES_texture_float') ||
+        !gl.getExtension('OES_texture_float_linear') ||
+        !gl.getExtension('WEBGL_color_buffer_float'))
+    ) {
+      // Reset to default
+      if (options.colorFormat === 'float') {
+        this.colorFormat = this.glColorFormat()
+      }
+      if (options.depthFormat === 'float') {
+        this.depthFormat = this.glDepthFormat()
+      }
+      console.warn(
+        'Warning: Unable to create floating point textures in this environment. Falling back to integers',
+      )
     }
 
     const framebuffer = gl.createFramebuffer()
@@ -79,6 +92,21 @@ class Framebuffer {
     }
     this.framebuffer = framebuffer
     this.recreateTextures()
+  }
+
+  glColorFormat(format) {
+    const gl = this._renderer.GL
+    if (format === 'float') {
+      return gl.FLOAT
+    }
+    return gl.UNSIGNED_BYTE
+  }
+  glDepthFormat(format) {
+    const gl = this._renderer.GL
+    if (format === 'float') {
+      return gl.FLOAT
+    }
+    return gl.UNSIGNED_SHORT
   }
 
   handleResize() {
@@ -117,7 +145,7 @@ class Framebuffer {
       height * density,
       0,
       hasAlpha ? gl.RGBA : gl.RGB,
-      gl.UNSIGNED_BYTE,
+      this.colorFormat,
       null,
     )
 
@@ -140,7 +168,7 @@ class Framebuffer {
       height * density,
       0,
       gl.DEPTH_COMPONENT,
-      gl.UNSIGNED_SHORT,
+      this.depthFormat,
       null,
     )
 
