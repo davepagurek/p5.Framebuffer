@@ -34,6 +34,10 @@ Add the library to your source code, *after* loading p5 but *before* loading you
 
 Create a Framebuffer in `setup` and use it in `draw`:
 
+<table>
+<tr>
+<td>
+
 ```js
 let fbo
 
@@ -51,25 +55,39 @@ function draw() {
     fill(255, 0, 0)
     rotateX(frameCount * 0.01)
     rotateY(frameCount * 0.01)
-    box(50)
+    box(150)
     pop()
   })
 
   // Do something with fbo.color or dbo.depth
   texture(fbo.depth)
+  noStroke()
   plane(width, height)
 }
 ```
 
+</td>
+<td>
+<img src="https://user-images.githubusercontent.com/5315059/178128913-a29bbfbf-a9c2-436d-9329-fbec2b5b2af9.png">
+</td>
+</tr>
+</table>
+
 Notes:
 - `draw()` uses the same p5 context as the rest of your sketch! Make sure to wrap your callback code in a `push()` and `pop()` to ensure your settings don't leak out into your non-Framebuffer code.
 - When you `resizeCanvas`, the Framebuffer will automatically resize accordingly. You probably will want to clear it and redraw to it if you had a texture cached.
+
+A live example: https://davepagurek.github.io/p5.Framebuffer/examples/simple
 
 ### Depth of field blur
 
 The library provides a helper that bundles a Framebuffer with a shader that applies focal blur, leaving objects at a provided distance in focus and blurring things more the farther away from that  point they are.
 
 Create a blur renderer and draw inside its `draw` callback. When you tell it to `focusHere()`, anything drawn at that transformed position will be in focus. You can use standard p5 `translate` calls to position the focal point.
+
+<table>
+<tr>
+<td>
 
 ```js
 let blurRenderer
@@ -103,6 +121,13 @@ function draw() {
 }
 ```
 
+</td>
+<td>
+<img src="https://user-images.githubusercontent.com/5315059/178128839-164de943-960c-4e0a-ba6a-a7aa836ec798.png">
+</td>
+</tr>
+</table>
+
 Methods on `BlurRenderer`:
 - `BlurRenderer.prototype.draw(callback: () => void)`
   - Draw the scene defined in the callback with blur
@@ -116,13 +141,17 @@ Methods on `BlurRenderer`:
   - Control how many random samples to use in the blur shader. More samples will look smoother but is more computationally intensive.
   - Defaults to 15
 
-A live example: https://davepagurek.github.io/p5.Framebuffer/examples/shadows
+A live example: https://davepagurek.github.io/p5.Framebuffer/examples/blur
 
 ### Contact Shadows
 
 The library provides a helper that bundles a Framebuffer with a shader that applies Ambient Occlusion shadows. This approximates the shadows one would see if there was uniform light hitting an object from all sides. In practice, it adds shadows in areas where objects get close to each other.
 
 Create a shadow renderer and draw inside its `draw` callback. The renderer will add shadows to the result.
+
+<table>
+<tr>
+<td>
 
 ```js
 let contactShadowRenderer
@@ -154,6 +183,13 @@ function draw() {
 }
 ```
 
+</td>
+<td>
+<img src="https://user-images.githubusercontent.com/5315059/178128655-22816bcd-901d-49b5-95db-753815762805.png">
+</td>
+</tr>
+</table>
+
 Methods on `ContactShadowRenderer`:
 - `ContactShadowRenderer.prototype.draw(callback: () => void)`
   - Draw the scene defined in the callback with shadows added
@@ -168,15 +204,9 @@ Methods on `ContactShadowRenderer`:
   - This is defined in *world space,* meaning all transformations are applied when checking distances
   - Defaults to 100
 
+A live example: https://davepagurek.github.io/p5.Framebuffer/examples/shadows
+
 ## External examples
-In this repo:
-- `examples/simple`: Drawing both the depth and color buffers of a rotating cube
-  - Live: https://davepagurek.github.io/p5.Framebuffer/examples/simple
-  - On the p5 editor: https://editor.p5js.org/davepagurek/sketches/cmAwY6d5W
-- `examples/blur`: Using the depth map to blur out-of-focus parts of the sketch
-  - Live: https://davepagurek.github.io/p5.Framebuffer/examples/blur
-- `examples/shadows`: Using the depth map to add ambient occlusion shadows
-  - Live: https://davepagurek.github.io/p5.Framebuffer/examples/shadows
 
 - <a href="https://openprocessing.org/sketch/1590159">Train Knots</a>
   - Uses the depth buffer in a focal blur shader
