@@ -18,7 +18,7 @@ Add the library to your source code, *after* loading p5 but *before* loading you
 
 ### Via CDN
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.2/p5.Framebuffer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.3/p5.Framebuffer.min.js"></script>
 ```
 
 ### Self-hosted
@@ -73,11 +73,123 @@ function draw() {
 </tr>
 </table>
 
+Methods:
+- `p5.prototype.createFramebuffer(options?: Options)`
+  - `options.colorFormat: 'float' | 'unsigned_byte'`
+    - Specify whether to use floating point storage for the color texture
+    - Defaults to `'unsigned_byte'`
+    - Note: If you use floating point colors, in Firefox you must also call `setAttributes({ alpha: true })`
+
 Notes:
 - `draw()` uses the same p5 context as the rest of your sketch! Make sure to wrap your callback code in a `push()` and `pop()` to ensure your settings don't leak out into your non-Framebuffer code.
 - When you `resizeCanvas`, the Framebuffer will automatically resize accordingly. You probably will want to clear it and redraw to it if you had a texture cached.
 
 A live example: https://davepagurek.github.io/p5.Framebuffer/examples/simple
+
+### Floating point textures
+
+Sometimes, you want to write code that adds on to or modifies the previous frame. You may notice weird artifacts that show up due to the fact that colors are internally stored as integers: sometimes if you overlay a color with a very small alpha, the change in color is too small to round the resulting color up to the next integer value, so it doesn't change at all.
+
+This can be fixed if you store colors as floating point values! You can specify this in an optional options object when creating a Framebuffer object.
+
+<table>
+<tr>
+<td rowspan="4">
+
+```js
+let fboPrev, fboNext
+let canvas
+
+function setup() {
+  canvas = createCanvas(400, 400, WEBGL)
+  // There's a bug in Firefox where you can only make floating point textures
+  // if they're RGBA, and it breaks if it's just RGB
+  setAttributes({ alpha: true })
+
+  // Try changing `float` to `unsigned_byte` to see it leave a trail
+  options = { colorFormat: 'float' }
+  fboPrev = createFramebuffer(options)
+  fboNext = createFramebuffer(options)
+  imageMode(CENTER)
+  rectMode(CENTER)
+  noStroke()
+}
+
+function draw() {
+  // Swap prev and next so that we can use the previous frame as a texture
+  // when drawing the current frame
+  [fboPrev, fboNext] = [fboNext, fboPrev]
+
+  // Draw to the Framebuffer
+  fboNext.draw(() => {
+    clear()
+
+    background(255)
+
+    // Disable depth testing so that the image of the previous
+    // frame doesn't cut off the sube
+    _renderer.GL.disable(_renderer.GL.DEPTH_TEST)
+    push()
+    scale(1.003)
+    texture(fboPrev.color)
+    plane(width, -height)
+    pop()
+
+    push()
+    // Fade to white slowly. This will leave a permanent trail if you don't
+    // use floating point textures.
+    fill(255, 1)
+    rect(0, 0, width, height)
+    pop()
+    _renderer.GL.enable(_renderer.GL.DEPTH_TEST)
+
+    push()
+    normalMaterial()
+    translate(100*sin(frameCount * 0.014), 100*sin(frameCount * 0.02), 0)
+    rotateX(frameCount * 0.01)
+    rotateY(frameCount * 0.01)
+    box(50)
+    pop()
+  })
+
+  clear()
+  push()
+  texture(fboNext.color)
+  plane(width, -height)
+  pop()
+}
+```
+
+
+</td>
+<th>
+With <code>colorFormat: 'float'</code>
+</th>
+</tr>
+<tr>
+<td>
+<img src="https://user-images.githubusercontent.com/5315059/178152103-07914de2-d09f-423f-99cc-84f83c422e8b.png">
+</td>
+</tr>
+<tr>
+<th>
+With <code>colorFormat: 'unsigned_byte'</code> (the default)
+</th>
+</tr>
+<tr>
+<td>
+<img src="https://user-images.githubusercontent.com/5315059/178152105-756356b0-d741-42b6-a460-9b7b2b571f16.png">
+</td>
+</tr>
+</table>
+
+
+Methods:
+- `p5.prototype.createFramebuffer(options?: Options)`
+  - `options.colorFormat: 'float' | 'unsigned_byte'`
+    - Specify whether to use floating point storage for the color texture
+    - Defaults to `'unsigned_byte'`
+    - Note: If you use floating point colors, in Firefox you must also call `setAttributes({ alpha: true })`
 
 ### Depth of field blur
 
