@@ -1,6 +1,6 @@
 {
   "name": "@davepagurek/p5.framebuffer",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "p5.Framebuffer.js",
   "author": "Dave Pagurek <dave@davepagurek.com>",
   "license": "MIT",
@@ -17,11 +17,17 @@
     "minify": "^9.0.0"
   },
   "scripts": {
-    "build": "minify p5.Framebuffer.js > p5.Framebuffer.min.js",
+    "build:core": "minify p5.Framebuffer.js > p5.Framebuffer.core.min.js",
+    "build:all": "minify p5.Framebuffer.js > p5.Framebuffer.min.js; minify Renderer.js >> p5.Framebuffer.min.js; minify BlurRenderer.js >> p5.Framebuffer.min.js; minify ContactShadowRenderer.js >> p5.Framebuffer.min.js",
+    "build": "yarn build:core && yarn build:all",
     "publish": "npm publish --access public"
   },
   "files": [
     "p5.Framebuffer.min.js",
-    "p5.Framebuffer.js"
+    "p5.Framebuffer.core.min.js",
+    "p5.Framebuffer.js",
+    "Renderer.js",
+    "BlurRenderer.js",
+    "ContactShadowRenderer.js"
   ]
 }

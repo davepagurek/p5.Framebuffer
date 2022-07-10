@@ -6,13 +6,14 @@ function setup() {
 }
 
 function draw() {
-  // Draw a sphere to the Framebuffer
+  // Draw to the Framebuffer
   fbo.draw(() => {
     clear()
     background(255)
     push()
     noStroke()
     fill(255, 0, 0)
+    translate(0, 100*sin(frameCount * 0.01), 0)
     rotateX(frameCount * 0.01)
     rotateY(frameCount * 0.01)
     box(50)
