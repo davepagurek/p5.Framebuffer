@@ -1,3 +1,73 @@
+class BlurRenderer extends Renderer {
+  constructor(target) {
+    super(target)
+    this.focus = (target.height / 2) / tan(PI / 6)
+    this.intensity = 0.05
+    this.numSamples = 15
+  }
+
+  vert() {
+    return BlurRenderer.vert
+  }
+
+  frag() {
+    return BlurRenderer.frag
+  }
+
+  focusHere() {
+    const matrix = new DOMMatrix(this.target._renderer.uMVMatrix.mat4)
+    const center = new DOMPoint(0, 0, 0)
+    const world = center.matrixTransform(matrix)
+    this.focus = -world.z
+  }
+
+  setIntensity(intensity) {
+    this.intensity = intensity
+  }
+
+  setSamples(numSamples) {
+    this.numSamples = numSamples
+  }
+
+  getUniforms() {
+    return {
+      uImg: this.fbo.color,
+      uDepth: this.fbo.depth,
+      uSize: [this.target.width, this.target.height],
+      uIntensity: this.intensity,
+      uNumSamples: this.numSamples,
+      uNear: this.target._renderer._curCamera._near,
+      uFar: this.target._renderer._curCamera._far,
+      uTargetZ: this.focus,
+    }
+  }
+}
+
+p5.prototype.createBlurRenderer = function() {
+  return new BlurRenderer(this)
+}
+
+BlurRenderer.vert = `
+precision highp float;
+
+attribute vec3 aPosition;
+attribute vec3 aNormal;
+attribute vec2 aTexCoord;
+
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+uniform mat3 uNormalMatrix;
+
+varying highp vec2 vVertTexCoord;
+
+void main(void) {
+  vec4 positionVec4 = vec4(aPosition, 1.0);
+  gl_Position = uProjectionMatrix * uModelViewMatrix * positionVec4;
+  vVertTexCoord = aTexCoord;
+}
+`
+
+BlurRenderer.frag = `
 precision highp float;
 varying highp vec2 vVertTexCoord;
 
@@ -52,3 +122,4 @@ void main() {
   color /= total;
   gl_FragColor = color;
 }
+`
