@@ -250,8 +250,9 @@ Methods on `BlurRenderer`:
   - Control the intensity of the blur, between 0 and 1: the lower the intensity, the farther objects have to be from the focal point to be blurred
   - Defaults to 0.05
 - `BlurRenderer.prototype.setDof(dof: number)`
-  - Control the depth of field along the z-axis, unsigned number start from 0: the lower the dof, the smaller clear depth range without blur, and the blur amount will start to be gained while the depth is outside the clear range.
-  - The focal target is located in the centre of the clear range. So assume the focal target's depth value is `z`, then the clear range becomes from `z - dof / 2` to `z + dof / 2`.
+  - Control the depth of field (dof), which is the distance away from the focal point that is also in focus, from 0 up
+  - The lower the dof, the smaller range will be that has no blur. Blur amount will start to accumulate when objects are outside of the dof range
+  - The focal target (set by `focusHere`) is located in the centre of the clear range. So assume the focal target's depth value is `z`, then the clear range becomes from `z - dof / 2` to `z + dof / 2`.
   - Defaults to 0
 - `BlurRenderer.prototype.setSamples(numSamples: number)`
   - Control how many random samples to use in the blur shader. More samples will look smoother but is more computationally intensive.
