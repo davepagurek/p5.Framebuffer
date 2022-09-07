@@ -3,6 +3,7 @@ class BlurRenderer extends Renderer {
     super(target)
     this.focus = (target.height / 2) / tan(PI / 6)
     this.intensity = 0.05
+    this.dof = 0
     this.numSamples = 15
   }
 
@@ -21,6 +22,10 @@ class BlurRenderer extends Renderer {
     this.focus = -world.z
   }
 
+  setDof(dof) {
+    this.dof = dof
+  }
+
   setIntensity(intensity) {
     this.intensity = intensity
   }
@@ -35,6 +40,7 @@ class BlurRenderer extends Renderer {
       uDepth: this.fbo.depth,
       uSize: [this.target.width, this.target.height],
       uIntensity: this.intensity,
+      uDof: this.dof,
       uNumSamples: this.numSamples,
       uNear: this.target._renderer._curCamera._near,
       uFar: this.target._renderer._curCamera._far,
@@ -75,6 +81,7 @@ uniform sampler2D uImg;
 uniform sampler2D uDepth;
 uniform vec2 uSize;
 uniform float uIntensity;
+uniform float uDof;
 uniform float maxBlur;
 uniform int uNumSamples;
 uniform float uTargetZ;
@@ -95,30 +102,34 @@ float depthToZ(float depth) {
 }
 
 float calcBlur(float z, float pixelScale) {
-  return clamp(abs(z - uTargetZ), 0.0, 0.3*pixelScale);
+  return clamp(abs(z - uTargetZ) - uDof / 2., 0.0, 0.3*pixelScale);
 }
 
 void main() {
-  float pixelScale = max(uSize.x, uSize.y);
   float total = 1.0;
   float origZ = depthToZ(texture2D(uDepth, vVertTexCoord).x);
   vec4 color = texture2D(uImg, vVertTexCoord);
-  float blurAmt = calcBlur(origZ, pixelScale);
-  for (int i = 0; i < MAX_NUM_SAMPLES; i++) {
-    if (i >= uNumSamples) break;
-    float t = (float(i + 1) / float(uNumSamples));
-    float angle = (t*12.0) * 2. * PI;
-    float radius = 1.0 - (t*t*t); // Sample more on the outer edge
-    angle += 5.*rand(gl_FragCoord.xy);
-    vec2 offset = (vec2(cos(angle),sin(angle)) * radius * uIntensity * blurAmt)/pixelScale;
-    float z = depthToZ(texture2D(uDepth, vVertTexCoord + offset).x);
-    float sampleBlur = calcBlur(z, pixelScale);
 
-    float weight = float((z >= origZ) || (sampleBlur >= blurAmt*radius + 5.));
-    vec4 sample = texture2D(uImg, vVertTexCoord + offset);
-    color += weight * sample;
-    total += weight;
+  if (abs(origZ - uTargetZ) > uDof / 2.) {
+    float pixelScale = max(uSize.x, uSize.y);
+    float blurAmt = calcBlur(origZ, pixelScale);
+    for (int i = 0; i < MAX_NUM_SAMPLES; i++) {
+      if (i >= uNumSamples) break;
+      float t = (float(i + 1) / float(uNumSamples));
+      float angle = (t*12.0) * 2. * PI;
+      float radius = 1.0 - (t*t*t); // Sample more on the outer edge
+      angle += 5.*rand(gl_FragCoord.xy);
+      vec2 offset = (vec2(cos(angle),sin(angle)) * radius * uIntensity * blurAmt)/pixelScale;
+      float z = depthToZ(texture2D(uDepth, vVertTexCoord + offset).x);
+      float sampleBlur = calcBlur(z, pixelScale);
+
+      float weight = float((z >= origZ) || (sampleBlur >= blurAmt*radius + 5.));
+      vec4 sample = texture2D(uImg, vVertTexCoord + offset);
+      color += weight * sample;
+      total += weight;
+    }
   }
+
   color /= total;
   gl_FragColor = color;
 }
