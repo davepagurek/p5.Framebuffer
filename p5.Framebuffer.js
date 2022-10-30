@@ -127,6 +127,9 @@ class Framebuffer {
     const density = this._renderer._pInst._pixelDensity
     const hasAlpha = this._renderer._pInst._glAttributes.alpha
 
+    const prevBoundTexture = gl.getParameter(gl.TEXTURE_BINDING_2D)
+    const prevBoundFramebuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING)
+
     const colorTexture = gl.createTexture()
     if (!colorTexture) {
       throw new Error('Unable to create color texture')
@@ -136,7 +139,6 @@ class Framebuffer {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
     gl.texImage2D(
       gl.TEXTURE_2D,
       0,
@@ -159,7 +161,6 @@ class Framebuffer {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
     gl.texImage2D(
       gl.TEXTURE_2D,
       0,
@@ -204,8 +205,8 @@ class Framebuffer {
     )
     this._renderer.textures.push(colorP5Texture)
 
-    gl.bindTexture(gl.TEXTURE_2D, null)
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+    gl.bindTexture(gl.TEXTURE_2D, prevBoundTexture)
+    gl.bindFramebuffer(gl.FRAMEBUFFER, prevBoundFramebuffer)
 
     this.depthTexture = depthTexture
     this.depth = depthP5Texture
