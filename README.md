@@ -18,7 +18,7 @@ Add the library to your source code, *after* loading p5 but *before* loading you
 
 ### Via CDN
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.5/p5.Framebuffer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.6/p5.Framebuffer.min.js"></script>
 ```
 
 ### Self-hosted
@@ -196,6 +196,81 @@ Methods:
 The library provides a helper that bundles a Framebuffer with a shader that applies focal blur, leaving objects at a provided distance in focus and blurring things more the farther away from that  point they are.
 
 Create a blur renderer and draw inside its `draw` callback. When you tell it to `focusHere()`, anything drawn at that transformed position will be in focus. You can use standard p5 `translate` calls to position the focal point.
+
+#### Gaussian blur
+
+This is likely the best-looking blur renderer, although it uses two render passes. Start by using this one, but look out the other `BlurRenderer` if it's slow.
+
+<table>
+<tr>
+<td>
+
+```js
+let blurRenderer
+
+function setup() {
+  createCanvas(400, 400, WEBGL)
+  blurRenderer = createGaussianBlurRenderer()
+  blurRenderer.setIntensity(0.15)
+  blurRenderer.setSamples(20)
+  blurRenderer.setDof(50)
+}
+
+function draw() {
+  blurRenderer.draw(() => {
+    clear()
+    push()
+    background(255)
+    noStroke()
+    lights()
+
+    push()
+    fill('blue')
+    translate(-80, -80, -300)
+    blurRenderer.focusHere()
+    sphere(50)
+    pop()
+
+    push()
+    fill('red')
+    sphere(50)
+    pop()
+    pop()
+  })
+}
+```
+
+</td>
+<td>
+<img src="https://user-images.githubusercontent.com/5315059/201497333-92a3f46e-91b7-4d4e-a675-f958d8d9ff50.png" width="400" height="400">
+</td>
+</tr>
+</table>
+
+Methods on `GaussianBlurRenderer`:
+- `GaussianBlurRenderer.prototype.draw(callback: () => void)`
+  - Draw the scene defined in the callback with blur
+- `GaussianBlurRenderer.prototype.focusHere()`
+  - Tell the renderer what point in space should be in focus. It will move based on any calls to `translate()` or other transformations that you have applied.
+  - Defaults to the origin
+- `GaussianBlurRenderer.prototype.setIntensity(intensity: number)`
+  - Control the intensity of the blur, between 0 and 1: the lower the intensity, the farther objects have to be from the focal point to be blurred
+  - Defaults to 0.1
+- `GaussianBlurRenderer.prototype.setDof(dof: number)`
+  - Control the depth of field (dof), which is the distance away from the focal point that is also in focus, from 0 up
+  - The lower the dof, the smaller range will be that has no blur. Blur amount will start to accumulate when objects are outside of the dof range
+  - The focal target (set by `focusHere`) is located in the centre of the clear range. So assume the focal target's depth value is `z`, then the clear range becomes from `z - dof / 2` to `z + dof / 2`.
+  - Defaults to 0
+- `GaussianBlurRenderer.prototype.setSamples(numSamples: number)`
+  - Control how many random samples to use in the blur shader. More samples will look smoother but is more computationally intensive.
+  - Defaults to 20
+
+A live example: https://davepagurek.github.io/p5.Framebuffer/examples/gaussianblur
+
+
+#### One-pass blur
+
+Another implementation of blur, but using a single shader pass. This will likely produce a grainier result, but might be faster on some systems.
 
 <table>
 <tr>
