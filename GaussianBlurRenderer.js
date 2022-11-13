@@ -32,6 +32,7 @@ class GaussianBlurRenderer extends BlurRenderer {
     
     this.fbo2.draw(() => {
       this.target.push()
+      this.target.clear()
       this.target.noStroke()
       this.target.rectMode(CENTER)
       this.target.shader(this.shader)
