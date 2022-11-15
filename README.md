@@ -242,7 +242,7 @@ function draw() {
 
 </td>
 <td>
-<img src="https://user-images.githubusercontent.com/5315059/201497333-92a3f46e-91b7-4d4e-a675-f958d8d9ff50.png" width="400" height="400">
+<img src="https://user-images.githubusercontent.com/5315059/201497333-92a3f46e-91b7-4d4e-a675-f958d8d9ff50.png" width="400">
 </td>
 </tr>
 </table>
