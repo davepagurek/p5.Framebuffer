@@ -2,7 +2,6 @@ class Renderer {
   constructor(target = window) {
     this.target = target
     this.fbo = target.createFramebuffer()
-    this.cam = target.createCamera()
     this.shader = target.createShader(this.vert(), this.frag())
   }
 
@@ -19,7 +18,6 @@ class Renderer {
   }
 
   draw(cb) {
-    const prevCamera = this.target._renderer._curCamera
     this.fbo.draw(() => {
       this.target.push()
       cb()
@@ -29,9 +27,6 @@ class Renderer {
     const uniforms = this.getUniforms()
 
     this.target.push()
-    this.target.setCamera(this.cam)
-    this.cam.move(0, 0, 0)
-
     this.target.noStroke()
 		this.target.rectMode(CENTER)
 		this.target.shader(this.shader)
@@ -40,7 +35,6 @@ class Renderer {
     }
     this.target.rect(0, 0, this.target.width, -this.target.height)
     this.target.pop()
-    this.target.setCamera(prevCamera)
   }
 
   remove() {

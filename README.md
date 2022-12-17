@@ -79,6 +79,9 @@ Methods:
     - Specify whether to use floating point storage for the color texture
     - Defaults to `'unsigned_byte'`
     - Note: If you use floating point colors, in Firefox you must also call `setAttributes({ alpha: true })`
+  - `options.size: { width: number; height: number; pixelDensity: number | undefined }`
+    - Optionally specify a size and pixel density separate from the main canvas or graphic
+    - If unspecified, the Framebuffer will resize when its canvas does
 
 Notes:
 - `draw()` uses the same p5 context as the rest of your sketch! Make sure to wrap your callback code in a `push()` and `pop()` to ensure your settings don't leak out into your non-Framebuffer code.
