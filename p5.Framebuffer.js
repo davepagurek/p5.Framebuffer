@@ -13,6 +13,32 @@ const _createFramebuffer = function (options) {
 p5.prototype.createFramebuffer = _createFramebuffer
 p5.Graphics.prototype.createFramebuffer = _createFramebuffer
 
+p5.RendererGL.prototype._initContext = function() {
+  try {
+    this.drawingContext =
+      this.canvas.getContext('webgl2', this._pInst._glAttributes)
+    this.hasWebGL2 = !!this.drawingContext
+    if (!this.drawingContext) {
+      this.drawingContext =
+        this.canvas.getContext('webgl', this._pInst._glAttributes) ||
+        this.canvas.getContext('experimental-webgl', this._pInst._glAttributes);
+    }
+    if (this.drawingContext === null) {
+      throw new Error('Error creating webgl context');
+    } else {
+      const gl = this.drawingContext;
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthFunc(gl.LEQUAL);
+      gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+      this._viewport = this.drawingContext.getParameter(
+        this.drawingContext.VIEWPORT
+      );
+    }
+  } catch (er) {
+    throw er;
+  }
+};
+
 const parentGetTexture = p5.RendererGL.prototype.getTexture
 p5.RendererGL.prototype.getTexture = function (imgOrTexture) {
   if (imgOrTexture instanceof p5.Texture) {
@@ -31,8 +57,8 @@ p5.RendererGL.prototype.getTexture = function (imgOrTexture) {
 // that looks like a p5 texture but that never tries to update
 // data in order to use framebuffer textures inside p5.
 class RawTextureWrapper extends p5.Texture {
-  constructor(renderer, obj, w, h) {
-    super(renderer, obj)
+  constructor(renderer, obj, settings, w, h) {
+    super(renderer, obj, settings)
     this.width = w
     this.height = h
     return this
@@ -62,7 +88,7 @@ class Framebuffer {
   constructor(canvas, options = {}) {
     this._renderer = canvas._renderer
     const gl = this._renderer.GL
-    if (!gl.getExtension('WEBGL_depth_texture')) {
+    if (!this._renderer.hasWebGL2 && !gl.getExtension('WEBGL_depth_texture')) {
       throw new Error('Unable to create depth textures in this environment')
     }
 
@@ -70,9 +96,13 @@ class Framebuffer {
     this.depthFormat = this.glDepthFormat(options.depthFormat)
     if (
       (options.colorFormat === 'float' || options.depthFormat === 'float') &&
-      (!gl.getExtension('OES_texture_float') ||
-        !gl.getExtension('OES_texture_float_linear') ||
-        !gl.getExtension('WEBGL_color_buffer_float'))
+      (
+        this._renderer.hasWebGL2
+          ? !gl.getExtension('EXT_color_buffer_float')
+          : (!gl.getExtension('OES_texture_float') ||
+             !gl.getExtension('OES_texture_float_linear') ||
+             !gl.getExtension('WEBGL_color_buffer_float'))
+      )
     ) {
       // Reset to default
       if (options.colorFormat === 'float') {
@@ -106,7 +136,19 @@ class Framebuffer {
     if (format === 'float') {
       return gl.FLOAT
     }
-    return gl.UNSIGNED_SHORT
+    return gl.UNSIGNED_INT
+  }
+  glInternalFormat(hasAlpha) {
+    const gl = this._renderer.GL
+    if (this._renderer.hasWebGL2 && this.colorFormat === gl.FLOAT) {
+      return hasAlpha ? gl.RGBA16F : gl.RGB16F
+    } else {
+      return hasAlpha ? gl.RGBA : gl.RGB
+    }
+  }
+  glFormat(hasAlpha) {
+    const gl = this._renderer.GL
+    return hasAlpha ? gl.RGBA : gl.RGB
   }
 
   handleResize() {
@@ -135,18 +177,18 @@ class Framebuffer {
       throw new Error('Unable to create color texture')
     }
     gl.bindTexture(gl.TEXTURE_2D, colorTexture)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
     gl.texImage2D(
       gl.TEXTURE_2D,
       0,
-      hasAlpha ? gl.RGBA : gl.RGB,
+      this.glInternalFormat(hasAlpha),
       width * density,
       height * density,
       0,
-      hasAlpha ? gl.RGBA : gl.RGB,
+      this.glFormat(hasAlpha),
       this.colorFormat,
       null,
     )
@@ -164,7 +206,7 @@ class Framebuffer {
     gl.texImage2D(
       gl.TEXTURE_2D,
       0,
-      gl.DEPTH_COMPONENT,
+      this._renderer.hasWebGL2 ? gl.DEPTH_COMPONENT24 : gl.DEPTH_COMPONENT,
       width * density,
       height * density,
       0,
@@ -192,6 +234,10 @@ class Framebuffer {
     const depthP5Texture = new RawTextureWrapper(
       this._renderer,
       depthTexture,
+      {
+        minFilter: 'nearest',
+        magFilter: 'nearest',
+      },
       width * density,
       height * density,
     )
@@ -200,6 +246,10 @@ class Framebuffer {
     const colorP5Texture = new RawTextureWrapper(
       this._renderer,
       colorTexture,
+      {
+        glMinFilter: 'nearest',
+        glMagFilter: 'nearest',
+      },
       width * density,
       height * density,
     )
@@ -221,9 +271,9 @@ class Framebuffer {
     const p5TextureIdx = this._renderer.textures.findIndex(
       (t) => t.src === texture,
     )
-    if (p5TextureIdx !== -1) {
-      this._renderer.textures.splice(p5TextureIdx, 1)
-    }
+      if (p5TextureIdx !== -1) {
+        this._renderer.textures.splice(p5TextureIdx, 1)
+      }
   }
 
   draw(cb) {
