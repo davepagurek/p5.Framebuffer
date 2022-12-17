@@ -1,4 +1,4 @@
-const _createFramebuffer = function (options) {
+const _createFramebuffer = function(options) {
   const fb = new Framebuffer(this, options)
 
   // Extend the old resize handler to also update the size of the framebuffer
@@ -40,7 +40,7 @@ p5.RendererGL.prototype._initContext = function() {
 };
 
 const parentGetTexture = p5.RendererGL.prototype.getTexture
-p5.RendererGL.prototype.getTexture = function (imgOrTexture) {
+p5.RendererGL.prototype.getTexture = function(imgOrTexture) {
   if (imgOrTexture instanceof p5.Texture) {
     return imgOrTexture
   } else {
@@ -84,12 +84,50 @@ class RawTextureWrapper extends p5.Texture {
   }
 }
 
+class FramebufferCamera extends p5.Camera {
+  constructor(fbo) {
+    super(fbo._renderer)
+    this.fbo = fbo
+  }
+
+  _computeCameraDefaultSettings() {
+    super._computeCameraDefaultSettings()
+    this.defaultAspectRatio = this.fbo.width / this.fbo.height
+    this.defaultEyeZ =
+      this.fbo.height / 2.0 / Math.tan(this.defaultCameraFOV / 2.0)
+    this.defaultCameraNear = this.defaultEyeZ * 0.1
+    this.defaultCameraFar = this.defaultEyeZ * 10
+  }
+
+  resize() {
+    // If we're using the default camera, update the aspect ratio
+    if (this.cameraType === 'default') {
+      this._computeCameraDefaultSettings()
+      this._setDefaultCamera()
+    } else {
+      this.perspective(
+        this.cameraFOV,
+        this.fbo.width / this.fbo.height
+      );
+    }
+  }
+}
+
 class Framebuffer {
   constructor(canvas, options = {}) {
+    this.canvas = canvas
     this._renderer = canvas._renderer
     const gl = this._renderer.GL
     if (!this._renderer.hasWebGL2 && !gl.getExtension('WEBGL_depth_texture')) {
       throw new Error('Unable to create depth textures in this environment')
+    }
+
+    const size = options.size
+    this.autoSized = !size
+    if (size) {
+      this.width = size.width || 400
+      this.height = size.height || 400
+      this.density = size.pixelDensity || canvas.pixelDensity()
     }
 
     this.colorFormat = this.glColorFormat(options.colorFormat)
@@ -122,6 +160,42 @@ class Framebuffer {
     }
     this.framebuffer = framebuffer
     this.recreateTextures()
+
+    const prevCamera = this._renderer._curCamera
+    this.cam = this.createCamera()
+    canvas.setCamera(prevCamera)
+  }
+
+  createCamera() {
+    const cam = new FramebufferCamera(this)
+    cam._computeCameraDefaultSettings();
+    cam._setDefaultCamera();
+    this._renderer._curCamera = cam;
+    return cam;
+  }
+
+  resizeCanvas(width, height) {
+    this.autoSized = false
+    this.width = width
+    this.height = height
+    this.handleResize()
+  }
+  pixelDensity(density) {
+    if (density) {
+      this.autoSized = false
+      this.density = density
+      this.handleResize()
+    } else {
+      return this.density
+    }
+  }
+  autoSized(autoSized) {
+    if (autoSized === undefined) {
+      return this.autoSized
+    } else {
+      this.autoSized = autoSized
+      this.handleResize()
+    }
   }
 
   glColorFormat(format) {
@@ -152,6 +226,8 @@ class Framebuffer {
   }
 
   handleResize() {
+    this.cam.resize()
+
     const oldColor = this.colorTexture
     const oldDepth = this.depthTexture
 
@@ -160,13 +236,18 @@ class Framebuffer {
     this.deleteTexture(oldColor)
     this.deleteTexture(oldDepth)
   }
+  updateSize() {
+    if (this.autoSized) {
+      this.width = this._renderer.width
+      this.height = this._renderer.height
+      this.density = this._renderer._pInst._pixelDensity
+    }
+  }
 
   recreateTextures() {
     const gl = this._renderer.GL
 
-    const width = this._renderer.width
-    const height = this._renderer.height
-    const density = this._renderer._pInst._pixelDensity
+    this.updateSize()
     const hasAlpha = this._renderer._pInst._glAttributes.alpha
 
     const prevBoundTexture = gl.getParameter(gl.TEXTURE_BINDING_2D)
@@ -185,8 +266,8 @@ class Framebuffer {
       gl.TEXTURE_2D,
       0,
       this.glInternalFormat(hasAlpha),
-      width * density,
-      height * density,
+      this.width * this.density,
+      this.height * this.density,
       0,
       this.glFormat(hasAlpha),
       this.colorFormat,
@@ -207,8 +288,8 @@ class Framebuffer {
       gl.TEXTURE_2D,
       0,
       this._renderer.hasWebGL2 ? gl.DEPTH_COMPONENT24 : gl.DEPTH_COMPONENT,
-      width * density,
-      height * density,
+      this.width * this.density,
+      this.height * this.density,
       0,
       gl.DEPTH_COMPONENT,
       this.depthFormat,
@@ -238,8 +319,8 @@ class Framebuffer {
         minFilter: 'nearest',
         magFilter: 'nearest',
       },
-      width * density,
-      height * density,
+      this.width * this.density,
+      this.height * this.density,
     )
     this._renderer.textures.push(depthP5Texture)
 
@@ -250,8 +331,8 @@ class Framebuffer {
         glMinFilter: 'nearest',
         glMagFilter: 'nearest',
       },
-      width * density,
-      height * density,
+      this.width * this.density,
+      this.height * this.density,
     )
     this._renderer.textures.push(colorP5Texture)
 
@@ -280,8 +361,32 @@ class Framebuffer {
     const gl = this._renderer.GL
     const prevFramebuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING)
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer)
+    const prevViewport = gl.getParameter(gl.VIEWPORT)
+    gl.viewport(0, 0, this.width * this.density, this.height * this.density)
+    this.canvas.push()
+    this.canvas.setCamera(this.cam)
+    this._renderer.uMVMatrix.set(
+      this._renderer._curCamera.cameraMatrix.mat4[0],
+      this._renderer._curCamera.cameraMatrix.mat4[1],
+      this._renderer._curCamera.cameraMatrix.mat4[2],
+      this._renderer._curCamera.cameraMatrix.mat4[3],
+      this._renderer._curCamera.cameraMatrix.mat4[4],
+      this._renderer._curCamera.cameraMatrix.mat4[5],
+      this._renderer._curCamera.cameraMatrix.mat4[6],
+      this._renderer._curCamera.cameraMatrix.mat4[7],
+      this._renderer._curCamera.cameraMatrix.mat4[8],
+      this._renderer._curCamera.cameraMatrix.mat4[9],
+      this._renderer._curCamera.cameraMatrix.mat4[10],
+      this._renderer._curCamera.cameraMatrix.mat4[11],
+      this._renderer._curCamera.cameraMatrix.mat4[12],
+      this._renderer._curCamera.cameraMatrix.mat4[13],
+      this._renderer._curCamera.cameraMatrix.mat4[14],
+      this._renderer._curCamera.cameraMatrix.mat4[15]
+    )
     cb()
     gl.bindFramebuffer(gl.FRAMEBUFFER, prevFramebuffer)
+    gl.viewport(...prevViewport)
+    this.canvas.pop()
   }
 
   remove() {
