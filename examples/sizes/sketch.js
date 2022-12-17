@@ -3,8 +3,9 @@ let fboAuto
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL)
-  fboFixed = createFramebuffer({ size: { width: 300, height: 200 } })
-  fboAuto = createFramebuffer()
+  setAttributes({ alpha: true })
+  fboFixed = createFramebuffer({ size: { width: 300, height: 200 }, antialias: true })
+  fboAuto = createFramebuffer({ antialias: true })
 }
 
 function windowResized() {

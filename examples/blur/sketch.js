@@ -2,7 +2,7 @@ let blurRenderer
 
 function setup() {
   createCanvas(400, 400, WEBGL)
-  blurRenderer = createBlurRenderer()
+  blurRenderer = createBlurRenderer({ antialias: true })
   blurRenderer.setIntensity(0.05)
   blurRenderer.setSamples(20)
 }

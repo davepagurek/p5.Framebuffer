@@ -1,6 +1,6 @@
 class ContactShadowRenderer extends Renderer {
-  constructor(target) {
-    super(target)
+  constructor(target, options) {
+    super(target, options)
     if (!this.target._renderer.hasWebGL2) {
       this.target._renderer.GL.getExtension('OES_standard_derivatives')
     }

@@ -1,6 +1,6 @@
 class BlurRenderer extends Renderer {
-  constructor(target) {
-    super(target)
+  constructor(target, options) {
+    super(target, options)
     this.focus = (target.height / 2) / tan(PI / 6)
     this.intensity = 0.05
     this.dof = 0

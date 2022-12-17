@@ -1,7 +1,7 @@
 class GaussianBlurRenderer extends BlurRenderer {
-  constructor(target) {
-    super(target)
-    this.fbo2 = target.createFramebuffer()
+  constructor(target, options) {
+    super(target, options)
+    this.fbo2 = target.createFramebuffer(options)
     this.intensity = 0.1
     this.numSamples = 20
   }
@@ -17,7 +17,6 @@ class GaussianBlurRenderer extends BlurRenderer {
   }
   
   draw(cb) {
-    const prevCamera = this.target._renderer._curCamera
     this.fbo.draw(() => {
       this.target.push()
       cb()
@@ -27,8 +26,6 @@ class GaussianBlurRenderer extends BlurRenderer {
     const uniforms = this.getUniforms()
 
     this.target.push()
-    this.target.setCamera(this.cam)
-    this.cam.move(0, 0, 0)
     
     this.fbo2.draw(() => {
       this.target.push()
@@ -55,7 +52,6 @@ class GaussianBlurRenderer extends BlurRenderer {
     this.shader.setUniform('uImg', this.fbo2.color)
     this.target.rect(0, 0, this.target.width, -this.target.height)
     this.target.pop()
-    this.target.setCamera(prevCamera)
   }
 
   remove() {
