@@ -1,7 +1,7 @@
 class Renderer {
-  constructor(target = window) {
+  constructor(target = window, options = {}) {
     this.target = target
-    this.fbo = target.createFramebuffer()
+    this.fbo = target.createFramebuffer(options)
     this.shader = target.createShader(this.vert(), this.frag())
   }
 

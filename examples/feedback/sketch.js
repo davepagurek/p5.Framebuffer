@@ -8,7 +8,7 @@ function setup() {
   setAttributes({ alpha: true })
 
   // Try changing `float` to `unsigned_byte` to see it leave a trail
-  options = { colorFormat: 'float' }
+  options = { colorFormat: 'float', antialias: true }
   fboPrev = createFramebuffer(options)
   fboNext = createFramebuffer(options)
   imageMode(CENTER)

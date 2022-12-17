@@ -1,0 +1,39 @@
+<!DOCTYPE html><html lang="en"><head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.1/p5.js"></script>
+    <script src="../../p5.Framebuffer.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8">
+
+  </head>
+  <body>
+    <div id="controls">
+      <select id="webglVersion">
+        <option value="2" selected>WebGL 2</option>
+        <option value="1">WebGL 1</option>
+      </select>
+
+      <select id="alpha">
+        <option value="alpha" selected>Alpha</option>
+        <option value="noAlpha">No Alpha</option>
+      </select>
+
+      <select id="antialias">
+        <option value="antialias" selected>Antialiased</option>
+        <option value="noAntialiased">No antialiasing</option>
+      </select>
+
+      <select id="format">
+        <option value="unsigned_byte" selected>Unsigned Byte Textures</option>
+        <option value="float">Float Textures</option>
+      </select>
+    </div>
+
+    <div id="sketch"></div>
+
+    <pre id="errors">
+    </pre>
+
+    <script src="sketch.js"></script>
+  
+
+</body></html>

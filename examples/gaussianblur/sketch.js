@@ -2,7 +2,7 @@ let blurRenderer
 
 function setup() {
   createCanvas(400, 400, WEBGL)
-  blurRenderer = createGaussianBlurRenderer()
+  blurRenderer = createGaussianBlurRenderer({ antialias: true })
 }
 
 function draw() {

@@ -18,7 +18,12 @@ Add the library to your source code, *after* loading p5 but *before* loading you
 
 ### Via CDN
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.7/p5.Framebuffer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.8/p5.Framebuffer.min.js"></script>
+```
+
+On OpenProcessing, paste this link into a new library slot:
+```
+https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.8/p5.Framebuffer.min.js
 ```
 
 ### Self-hosted
@@ -82,12 +87,50 @@ Methods:
   - `options.size: { width: number; height: number; pixelDensity: number | undefined }`
     - Optionally specify a size and pixel density separate from the main canvas or graphic
     - If unspecified, the Framebuffer will resize when its canvas does
+  - `options.antialias: boolean`
+    - Turn on antialiasing by passing `true`
+    - WebGL2 (the default, if available) will use multisampled antialiasing
+    - WebGL1 will render at 2x the pixel density of the canvas for pseudo-antialiasing
 
 Notes:
 - `draw()` uses the same p5 context as the rest of your sketch! Make sure to wrap your callback code in a `push()` and `pop()` to ensure your settings don't leak out into your non-Framebuffer code.
 - When you `resizeCanvas`, the Framebuffer will automatically resize accordingly. You probably will want to clear it and redraw to it if you had a texture cached.
 
 A live example: https://davepagurek.github.io/p5.Framebuffer/examples/simple
+
+### Framebuffer objects
+
+Methods:
+- `Framebuffer.prototype.resizeCanvas(width: number, height: number)`
+  - Resizes the Framebuffer to the specified size
+  - This turns off autosizing to match the canvas size
+- `Framebuffer.prototype.autiSized()`
+  - Returns whether or not the framebuffer will automatically match the canvas's size
+- `Framebuffer.prototype.autiSized(shouldAutoSize: boolean)`
+  - Sets whether or not the framebuffer should automatically match the canvas's size
+- `Framebuffer.prototype.pixelDensity()`
+  - Returns the current pixel density of the framebuffer
+- `Framebuffer.prototype.pixelDensity(targetDensity: number)`
+  - Sets the pixel density of the framebuffer
+  - This also turns off autosizing
+- `Framebuffer.prototype.defaultCamera()`
+  - Returns the camera associated with the framebuffer by default
+- `Framebuffer.prototype.createCamera()`
+  - Returns a new `p5.Camera` that matches the current dimensions of the framebuffer
+
+An example of changing the size: https://davepagurek.github.io/p5.Framebuffer/examples/sizes
+
+### WebGL 1
+
+By default, this library will use WebGL 2 instead of WebGL 1. To use WebGL 1 mode, add this to the top of your sketch:
+
+```js
+Framebuffer.forceWebGL1 = true
+```
+
+Note: Antialiasing in WebGL 1 mode works by rendering at 2x resolution instead of using a multisampled texture at 1x resolution.
+
+Compare the resulting quality using WebGL 1 vs 2 in this example: https://davepagurek.github.io/p5.Framebuffer/examples/formats
 
 ### Floating point textures
 
