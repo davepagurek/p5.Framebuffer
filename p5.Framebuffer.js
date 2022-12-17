@@ -165,7 +165,7 @@ class Framebuffer {
       throw new Error('Unable to create a framebuffer')
     }
     this.framebuffer = framebuffer
-    if (this.antialias) {
+    if (this.antialias && this._renderer.hasWebGL2) {
       this.aaFramebuffer = gl.createFramebuffer()
       if (!this.aaFramebuffer) {
         throw new Error('Unable to create a framebuffer')
@@ -185,6 +185,10 @@ class Framebuffer {
     cam._setDefaultCamera();
     this._renderer._curCamera = cam;
     return cam;
+  }
+
+  defaultCamera() {
+    return this.cam
   }
 
   resizeCanvas(width, height) {
@@ -226,7 +230,9 @@ class Framebuffer {
     return gl.UNSIGNED_INT
   }
   glInternalFormat(hasAlpha) {
-    if (this.antialias) return this.glInternalRenderbufferFormat(hasAlpha)
+    if (this.antialias && this._renderer.hasWebGL2) {
+      return this.glInternalRenderbufferFormat(hasAlpha)
+    }
     const gl = this._renderer.GL
     if (this._renderer.hasWebGL2 && this.colorFormat === gl.FLOAT) {
       return hasAlpha ? gl.RGBA16F : gl.RGB16F
@@ -306,8 +312,8 @@ class Framebuffer {
       gl.TEXTURE_2D,
       0,
       this.glInternalFormat(hasAlpha),
-      this.width * this.density,
-      this.height * this.density,
+      this.width * this.density * this.aaDensity,
+      this.height * this.density * this.aaDensity,
       0,
       this.glFormat(hasAlpha),
       this.colorFormat,
@@ -328,8 +334,8 @@ class Framebuffer {
       gl.TEXTURE_2D,
       0,
       this.glDepthInternalFormat(),
-      this.width * this.density,
-      this.height * this.density,
+      this.width * this.density * this.aaDensity,
+      this.height * this.density * this.aaDensity,
       0,
       gl.DEPTH_COMPONENT,
       this.depthFormat,
@@ -353,7 +359,7 @@ class Framebuffer {
     )
 
     // Create separate framebuffer for antialiasing
-    if (this.antialias) {
+    if (this.antialias && this._renderer.hasWebGL2) {
       this.colorRenderbuffer = gl.createRenderbuffer()
       gl.bindRenderbuffer(gl.RENDERBUFFER, this.colorRenderbuffer)
       if (this._renderer.hasWebGL2) {
@@ -365,6 +371,7 @@ class Framebuffer {
           this.height * this.density,
         )
       } else {
+        // TODO: use this in WebGL 1
         gl.renderbufferStorage(
           gl.RENDERBUFFER,
           gl.getParameter(gl.MAX_SAMPLES),
@@ -385,6 +392,7 @@ class Framebuffer {
           this.height * this.density,
         )
       } else {
+        // TODO: use this in WebGL 1
         gl.renderbufferStorage(
           gl.RENDERBUFFER,
           gl.getParameter(gl.MAX_SAMPLES),
@@ -416,8 +424,8 @@ class Framebuffer {
         minFilter: 'nearest',
         magFilter: 'nearest',
       },
-      this.width * this.density,
-      this.height * this.density,
+      this.width * this.density * this.aaDensity,
+      this.height * this.density * this.aaDensity,
     )
     this._renderer.textures.push(depthP5Texture)
 
@@ -428,8 +436,8 @@ class Framebuffer {
         glMinFilter: 'nearest',
         glMagFilter: 'nearest',
       },
-      this.width * this.density,
-      this.height * this.density,
+      this.width * this.density * this.aaDensity,
+      this.height * this.density * this.aaDensity,
     )
     this._renderer.textures.push(colorP5Texture)
 
@@ -449,15 +457,15 @@ class Framebuffer {
     const p5TextureIdx = this._renderer.textures.findIndex(
       (t) => t.src === texture,
     )
-      if (p5TextureIdx !== -1) {
-        this._renderer.textures.splice(p5TextureIdx, 1)
-      }
+    if (p5TextureIdx !== -1) {
+      this._renderer.textures.splice(p5TextureIdx, 1)
+    }
   }
 
   draw(cb) {
     const gl = this._renderer.GL
     const prevFramebuffer = gl.getParameter(gl.FRAMEBUFFER_BINDING)
-    if (this.antialias) {
+    if (this.antialias && this._renderer.hasWebGL2) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.aaFramebuffer)
     } else {
       gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer)
@@ -490,7 +498,7 @@ class Framebuffer {
       this._renderer._curCamera.cameraMatrix.mat4[15]
     )
     cb()
-    if (this.antialias) {
+    if (this.antialias && this._renderer.hasWebGL2) {
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.aaFramebuffer)
       gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.framebuffer)
       for (const [flag, filter] of [[gl.COLOR_BUFFER_BIT, gl.LINEAR, gl.DEPTH_BUFFER_BIT, gl.NEAREST]]) {
@@ -498,7 +506,7 @@ class Framebuffer {
           0, 0,
           this.width * this.density * this.aaDensity, this.height * this.density * this.aaDensity,
           0, 0,
-          this.width * this.density, this.height * this.density,
+          this.width * this.density * this.aaDensity, this.height * this.density * this.aaDensity,
           flag,
           filter,
         )
