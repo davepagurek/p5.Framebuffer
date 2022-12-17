@@ -1,7 +1,9 @@
 class ContactShadowRenderer extends Renderer {
   constructor(target) {
     super(target)
-    this.target._renderer.GL.getExtension('OES_standard_derivatives')
+    if (!this.target._renderer.hasWebGL2) {
+      this.target._renderer.GL.getExtension('OES_standard_derivatives')
+    }
     this.intensity = 0.5
     this.numSamples = 15
     this.exponent = 250
@@ -9,12 +11,20 @@ class ContactShadowRenderer extends Renderer {
     this.searchRadius = 100
   }
 
+  prefix() {
+    if (this.target._renderer.hasWebGL2) {
+      return '#version 300 es\n#define IS_WEBGL2\n'
+    } else {
+      return '#extension GL_OES_standard_derivatives : enable\n'
+    }
+  }
+
   vert() {
-    return ContactShadowRenderer.vert
+    return this.prefix() + ContactShadowRenderer.vert
   }
 
   frag() {
-    return ContactShadowRenderer.frag
+    return this.prefix() + ContactShadowRenderer.frag
   }
 
   setIntensity(intensity) {
@@ -62,15 +72,25 @@ p5.prototype.createContactShadowRenderer = function() {
 }
 
 ContactShadowRenderer.vert = `
+#ifdef IS_WEBGL2
+in vec3 aPosition;
+in vec3 aNormal;
+in vec2 aTexCoord;
+#else
 attribute vec3 aPosition;
 attribute vec3 aNormal;
 attribute vec2 aTexCoord;
+#endif
 
 uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
 uniform mat3 uNormalMatrix;
 
+#ifdef IS_WEBGL2
+out highp vec2 vVertTexCoord;
+#else
 varying highp vec2 vVertTexCoord;
+#endif
 
 void main(void) {
   vec4 positionVec4 = vec4(aPosition, 1.0);
@@ -80,9 +100,13 @@ void main(void) {
 `
 
 ContactShadowRenderer.frag = `
-#extension GL_OES_standard_derivatives : enable
 precision highp float;
+#ifdef IS_WEBGL2
+in highp vec2 vVertTexCoord;
+out highp vec4 outColor;
+#else
 varying highp vec2 vVertTexCoord;
+#endif
 
 uniform sampler2D uImg;
 uniform sampler2D uDepth;
@@ -103,7 +127,11 @@ float rand(vec2 co){
 }
 
 vec3 worldFromScreen(vec2 offset) {
+#ifdef IS_WEBGL2
+  float z = uNear * uFar  / ((uNear - uFar) * texture(uDepth, vVertTexCoord + offset).x + uFar);
+#else
   float z = uNear * uFar  / ((uNear - uFar) * texture2D(uDepth, vVertTexCoord + offset).x + uFar);
+#endif
   return vec3((((vVertTexCoord + offset) * uSize) * uProjInfo.xy + uProjInfo.zw) * z, z);
 }
 
@@ -144,7 +172,11 @@ vec3 adjustNormal(
 }
 
 void main() {
+#ifdef IS_WEBGL2
+  vec4 color = texture(uImg, vVertTexCoord);
+#else
   vec4 color = texture2D(uImg, vVertTexCoord);
+#endif
   vec3 position = worldFromScreen(vec2(0., 0.));
   vec3 normal = normalize(cross(dFdx(position), dFdy(position)));
 
@@ -196,6 +228,10 @@ void main() {
   }
   occlusion = 1.0 - (occlusion / float(uNumSamples));
   occlusion = clamp(pow(occlusion, 1.0 + uExponent), 0.0, 1.0);
+#ifdef IS_WEBGL2
+  outColor = vec4(color.rgb * mix(1., occlusion, uIntensity), color.a);
+#else
   gl_FragColor = vec4(color.rgb * mix(1., occlusion, uIntensity), color.a);
+#endif
 }
 `
