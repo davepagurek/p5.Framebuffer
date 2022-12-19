@@ -446,11 +446,17 @@ A live example: https://davepagurek.github.io/p5.Framebuffer/examples/shadows
 
 ## External examples
 
+- <a href="https://openprocessing.org/sketch/1773564">Rolling Shutter</a>
+  - Uses 120 framebuffers to store previous frames of video for a slit scanning effect
+- <a href="https://openprocessing.org/sketch/1721124">Wizard Pondering Orb</a>
+  - Uses the Gaussian blur renderer
+- <a href="https://openprocessing.org/sketch/1616318">3D Text</a>
+  - Uses two framebuffers to do a feedback effect
+- <a href="https://openprocessing.org/sketch/1622863">Disassemble</a>
+  - Uses the contact shadow renderer
 - <a href="https://openprocessing.org/sketch/1590159">Train Knots</a>
   - Uses the depth buffer in a focal blur shader
 - <a href="https://openprocessing.org/sketch/1460113">Modern Vampires of the City</a>
   - Uses the depth buffer to create a fog effect
-- <a href="https://openprocessing.org/sketch/1418669">Descent</a>
-  - Uses the depth buffer in a focal blur shader
 
 More coming soon!
