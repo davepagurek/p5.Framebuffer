@@ -18,12 +18,12 @@ Add the library to your source code, *after* loading p5 but *before* loading you
 
 ### Via CDN
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.8/p5.Framebuffer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.9/p5.Framebuffer.min.js"></script>
 ```
 
 On OpenProcessing, paste this link into a new library slot:
 ```
-https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.8/p5.Framebuffer.min.js
+https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.9/p5.Framebuffer.min.js
 ```
 
 ### Self-hosted
@@ -434,9 +434,15 @@ Methods on `ContactShadowRenderer`:
 - `ContactShadowRenderer.prototype.setIntensity(intensity: number)`
   - Control how dark shadows are: 0 is no shadows, and 1 is full darkness
   - Defaults to 0.5
-- `ContactShadowRenderer.prototype.setSamples(numSamples: number)`
-  - Control how many random samples to use in the shadow shader. More samples will look smoother but is more computationally intensive.
+- `ContactShadowRenderer.prototype.setShadowSamples(numSamples: number)`
+  - Control how many random samples to use in the shadow shader. More samples will be more accurate but is more computationally intensive.
   - Defaults to 15
+- `ContactShadowRenderer.prototype.setBlurSamples(numSamples: number)`
+  - Control how many random samples to use in the blur shader. More samples will be smoother but is more computationally intensive.
+  - Defaults to 20
+- `ContactShadowRenderer.prototype.setBlurRadius(radius: number)`
+  - Sets how far the blur extends when blurring shadows, in pixels, ignoring the pixel density
+  - Defaults to 50
 - `ContactShadowRenderer.prototype.setSearchRadius(radius: number)`
   - Control how close together objects need to be for them to cast shadows
   - This is defined in *world space,* meaning all transformations are applied when checking distances

@@ -4,11 +4,15 @@ class ContactShadowRenderer extends Renderer {
     if (!this.target._renderer.hasWebGL2) {
       this.target._renderer.GL.getExtension('OES_standard_derivatives')
     }
+    this.fbo2 = target.createFramebuffer(options)
+    this.blurShader = target.createShader(this.blurVert(), this.blurFrag())
     this.intensity = 0.5
-    this.numSamples = 15
+    this.numShadowSamples = 15
+    this.numBlurSamples = 20
     this.exponent = 250
-    this.bias = 1.
+    this.bias = 0.1
     this.searchRadius = 100
+    this.blurRadius = 50
   }
 
   prefix() {
@@ -27,11 +31,25 @@ class ContactShadowRenderer extends Renderer {
     return this.prefix() + ContactShadowRenderer.frag
   }
 
+  blurVert() {
+    return this.vert()
+  }
+
+  blurFrag() {
+    return this.prefix() + ContactShadowRenderer.blurFrag
+  }
+
   setIntensity(intensity) {
     this.intensity = intensity
   }
-  setSamples(numSamples) {
-    this.numSamples = numSamples
+  setShadowSamples(numSamples) {
+    this.numShadowSamples = numSamples
+  }
+  setBlurSamples(numSamples) {
+    this.numBlurSamples = numSamples
+  }
+  setBlurRadius(r) {
+    this.blurRadius = r
   }
   setExponent(exponent) {
     this.exponent = exponent
@@ -43,7 +61,7 @@ class ContactShadowRenderer extends Renderer {
     this.searchRadius = radius
   }
 
-  getUniforms() {
+  getShadowUniforms() {
     const projInfo = [
       -2 / (this.target.width * this.target._renderer.uPMatrix.mat4[0]),
       -2 / (this.target.height * this.target._renderer.uPMatrix.mat4[5]),
@@ -56,7 +74,7 @@ class ContactShadowRenderer extends Renderer {
       uDepth: this.fbo.depth,
       uSize: [this.target.width, this.target.height],
       uIntensity: this.intensity,
-      uNumSamples: this.numSamples,
+      uNumSamples: this.numShadowSamples,
       uNear: this.target._renderer._curCamera.cameraNear,
       uFar: this.target._renderer._curCamera.cameraFar,
       uProjInfo: projInfo,
@@ -64,6 +82,55 @@ class ContactShadowRenderer extends Renderer {
       uBias: this.bias,
       uSearchRadius: this.searchRadius,
     }
+  }
+
+  getBlurUniforms() {
+    return {
+      uImg: this.fbo.color,
+      uDepth: this.fbo.depth,
+      uShadow: this.fbo2.color,
+      uSize: [this.target.width, this.target.height],
+      uIntensity: this.intensity,
+      uNear: this.target._renderer._curCamera.cameraNear,
+      uFar: this.target._renderer._curCamera.cameraFar,
+      uNumSamples: this.numBlurSamples,
+      uBlurRadius: this.blurRadius,
+    }
+  }
+
+  draw(cb) {
+    const shadowUniforms = this.getShadowUniforms()
+    const blurUniforms = this.getBlurUniforms()
+
+    this.fbo.draw(() => {
+      this.target.push()
+      cb()
+      this.target.pop()
+    })
+
+    this.target.push()
+    
+    this.fbo2.draw(() => {
+      this.target.push()
+      this.target.clear()
+      this.target.noStroke()
+      this.target.rectMode(CENTER)
+      this.target.shader(this.shader)
+      for (const key in shadowUniforms) {
+        this.shader.setUniform(key, shadowUniforms[key])
+      }
+      this.target.rect(0, 0, this.target.width, -this.target.height)
+      this.target.pop()
+    })
+
+    this.target.noStroke()
+    this.target.rectMode(CENTER)
+    this.target.shader(this.blurShader)
+    for (const key in blurUniforms) {
+      this.blurShader.setUniform(key, blurUniforms[key])
+    }
+    this.target.rect(0, 0, this.target.width, -this.target.height)
+    this.target.pop()
   }
 }
 
@@ -120,10 +187,13 @@ uniform float uIntensity;
 uniform float uExponent;
 uniform float uBias;
 
-const int MAX_NUM_SAMPLES = 50;
+const int MAX_NUM_SAMPLES = 100;
 
-float rand(vec2 co){
+float rand(vec2 co) {
   return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
+}
+float rand(vec4 co) {
+  return fract(rand(co.xz) + rand(co.xy) + rand(co.yw) + rand(co.zw));
 }
 
 vec3 worldFromScreen(vec2 offset) {
@@ -189,8 +259,8 @@ void main() {
     float t = (float(i + 1) / float(uNumSamples));
 
     // Sample a sort of random ish coordinate in a half sphere pointing up
-    float phi = t * 11. * ${2 * Math.PI} + 0.5*rand(gl_FragCoord.xy);
-    float theta = t * ${Math.PI / 2} + 0.5*rand(gl_FragCoord.xy);
+    float phi = ${2 * Math.PI} * rand(vec4(gl_FragCoord.xy,t*100.,0.));
+    float theta = ${Math.PI / 2} * rand(vec4(gl_FragCoord.xy,t*100.,100.));
     float radius = 1.0 - t*t;
     vec3 localOff = vec3(
       radius * cos(phi) * sin(theta),
@@ -228,10 +298,82 @@ void main() {
   }
   occlusion = 1.0 - (occlusion / float(uNumSamples));
   occlusion = clamp(pow(occlusion, 1.0 + uExponent), 0.0, 1.0);
+  vec4 finalColor = vec4(occlusion, occlusion, occlusion, 1.);
 #ifdef IS_WEBGL2
-  outColor = vec4(color.rgb * mix(1., occlusion, uIntensity), color.a);
+  outColor = finalColor;
 #else
-  gl_FragColor = vec4(color.rgb * mix(1., occlusion, uIntensity), color.a);
+  gl_FragColor = finalColor;
+#endif
+}
+`
+
+ContactShadowRenderer.blurFrag = `
+precision highp float;
+#ifdef IS_WEBGL2
+in highp vec2 vVertTexCoord;
+out highp vec4 outColor;
+#else
+varying highp vec2 vVertTexCoord;
+#endif
+
+uniform sampler2D uImg;
+uniform sampler2D uDepth;
+uniform sampler2D uShadow;
+uniform vec2 uSize;
+uniform float uNear;
+uniform float uFar;
+uniform float uIntensity;
+uniform int uNumSamples;
+uniform float uBlurRadius;
+
+#ifdef IS_WEBGL2
+#define texFn texture
+#else
+#define texFn texture2D
+#endif
+
+float depthToZ(float depth) {
+  float depthNormalized = 2.0 * depth - 1.0;
+  return 2.0 * uNear * uFar / (uFar + uNear - depthNormalized * (uFar - uNear));
+}
+
+const int MAX_NUM_SAMPLES = 100;
+
+float rand(vec2 co) {
+  return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453);
+}
+float rand(vec4 co) {
+  return fract(rand(co.xz) + rand(co.xy) + rand(co.yw) + rand(co.zw));
+}
+
+void main() {
+  vec4 color = texFn(uImg, vVertTexCoord);
+
+  float origZ = depthToZ(texFn(uDepth, vVertTexCoord).x);
+  float occlusion = texFn(uShadow, vVertTexCoord).x;
+  float total = 1.;
+
+  for (int i = 0; i < MAX_NUM_SAMPLES; i++) {
+    if (i >= uNumSamples) break;
+    float t = (float(i) / float(uNumSamples - 1));
+    float angle = (t*12.0) * ${2 * Math.PI};
+    float radius = 1.0 - t;
+    angle += 5.*rand(gl_FragCoord.xy);
+
+    vec2 offset = (vec2(cos(angle),sin(angle)) * radius * uBlurRadius)/uSize;
+    float z = depthToZ(texFn(uDepth, vVertTexCoord + offset).x);
+
+    float weight = float(z >= origZ);
+    float shadowSample = texFn(uShadow, vVertTexCoord + offset).x;
+    occlusion += weight * shadowSample;
+    total += weight;
+  }
+  occlusion /= total;
+  vec4 mixedColor = vec4(color.rgb * mix(1., occlusion, uIntensity), color.a);
+#ifdef IS_WEBGL2
+  outColor = mixedColor;
+#else
+  gl_FragColor = mixedColor;
 #endif
 }
 `

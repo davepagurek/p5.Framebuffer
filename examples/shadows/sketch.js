@@ -1,11 +1,14 @@
 let contactShadowRenderer
 
 function setup() {
-  createCanvas(400, 400, WEBGL)
+  createCanvas(600, 600, WEBGL)
   contactShadowRenderer = createContactShadowRenderer()
-  contactShadowRenderer.setIntensity(0.4)
-  contactShadowRenderer.setSearchRadius(150)
-  contactShadowRenderer.setSamples(20)
+  contactShadowRenderer.setIntensity(0.9)
+  contactShadowRenderer.setExponent(500)
+  contactShadowRenderer.setSearchRadius(100)
+  contactShadowRenderer.setShadowSamples(10)
+  contactShadowRenderer.setBlurSamples(20)
+  contactShadowRenderer.setBias(0.1)
 }
 
 function draw() {
