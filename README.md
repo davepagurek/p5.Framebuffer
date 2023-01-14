@@ -104,9 +104,9 @@ Methods:
 - `Framebuffer.prototype.resizeCanvas(width: number, height: number)`
   - Resizes the Framebuffer to the specified size
   - This turns off autosizing to match the canvas size
-- `Framebuffer.prototype.autiSized()`
+- `Framebuffer.prototype.autoSized()`
   - Returns whether or not the framebuffer will automatically match the canvas's size
-- `Framebuffer.prototype.autiSized(shouldAutoSize: boolean)`
+- `Framebuffer.prototype.autoSized(shouldAutoSize: boolean)`
   - Sets whether or not the framebuffer should automatically match the canvas's size
 - `Framebuffer.prototype.pixelDensity()`
   - Returns the current pixel density of the framebuffer
