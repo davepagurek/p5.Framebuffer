@@ -1,6 +1,6 @@
 {
   "name": "@davepagurek/p5.framebuffer",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "main": "p5.Framebuffer.js",
   "author": "Dave Pagurek <dave@davepagurek.com>",
   "license": "MIT",
