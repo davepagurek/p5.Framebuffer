@@ -60,8 +60,8 @@ class GaussianBlurRenderer extends BlurRenderer {
   }
 }
 
-p5.prototype.createGaussianBlurRenderer = function() {
-  return new GaussianBlurRenderer(this)
+p5.prototype.createGaussianBlurRenderer = function(options) {
+  return new GaussianBlurRenderer(this, options)
 }
 
 GaussianBlurRenderer.frag = `

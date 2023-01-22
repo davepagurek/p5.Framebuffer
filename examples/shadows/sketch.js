@@ -2,7 +2,7 @@ let contactShadowRenderer
 
 function setup() {
   createCanvas(600, 600, WEBGL)
-  contactShadowRenderer = createContactShadowRenderer()
+  contactShadowRenderer = createContactShadowRenderer({ antialias: true })
   contactShadowRenderer.setIntensity(0.9)
   contactShadowRenderer.setExponent(500)
   contactShadowRenderer.setSearchRadius(100)

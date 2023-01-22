@@ -501,7 +501,7 @@ class Framebuffer {
     if (this.antialias && this._renderer.hasWebGL2) {
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.aaFramebuffer)
       gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.framebuffer)
-      for (const [flag, filter] of [[gl.COLOR_BUFFER_BIT, gl.LINEAR, gl.DEPTH_BUFFER_BIT, gl.NEAREST]]) {
+      for (const [flag, filter] of [[gl.COLOR_BUFFER_BIT, gl.LINEAR], [gl.DEPTH_BUFFER_BIT, gl.NEAREST]]) {
         gl.blitFramebuffer(
           0, 0,
           this.width * this.density * this.aaDensity, this.height * this.density * this.aaDensity,

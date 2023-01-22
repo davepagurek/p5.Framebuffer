@@ -49,8 +49,8 @@ class BlurRenderer extends Renderer {
   }
 }
 
-p5.prototype.createBlurRenderer = function() {
-  return new BlurRenderer(this)
+p5.prototype.createBlurRenderer = function(options) {
+  return new BlurRenderer(this, options)
 }
 
 BlurRenderer.vert = `

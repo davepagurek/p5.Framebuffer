@@ -134,8 +134,8 @@ class ContactShadowRenderer extends Renderer {
   }
 }
 
-p5.prototype.createContactShadowRenderer = function() {
-  return new ContactShadowRenderer(this)
+p5.prototype.createContactShadowRenderer = function(options) {
+  return new ContactShadowRenderer(this, options)
 }
 
 ContactShadowRenderer.vert = `

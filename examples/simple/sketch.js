@@ -2,7 +2,7 @@ let fbo
 
 function setup() {
   createCanvas(400, 400, WEBGL)
-  fbo = createFramebuffer()
+  fbo = createFramebuffer({ antialias: true })
 }
 
 function draw() {
