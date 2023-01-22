@@ -277,6 +277,8 @@ void main() {
     // At that screen space coordinate, what is the position of the object we see?
     vec3 samplePos = worldFromScreen(offset);
 
+    if (samplePos.z > mix(uNear, uFar, 0.99)) continue;
+
     // The amount of occlusion is proportional to the *cosine* of the angle between
     // the line connecting the object to the surface and the surface normal. This is
     // because light coming in at an angle is more spread out and thus delivers less
