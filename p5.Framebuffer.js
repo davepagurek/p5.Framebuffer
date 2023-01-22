@@ -374,7 +374,7 @@ class Framebuffer {
         // TODO: use this in WebGL 1
         gl.renderbufferStorage(
           gl.RENDERBUFFER,
-          gl.getParameter(gl.MAX_SAMPLES),
+          Math.min(4, gl.getParameter(gl.MAX_SAMPLES)),
           this.glInternalRenderbufferFormat(hasAlpha),
           this.width * this.density,
           this.height * this.density,
@@ -386,7 +386,7 @@ class Framebuffer {
       if (this._renderer.hasWebGL2) {
         gl.renderbufferStorageMultisample(
           gl.RENDERBUFFER,
-          gl.getParameter(gl.MAX_SAMPLES),
+          Math.min(4, gl.getParameter(gl.MAX_SAMPLES)),
           this.glDepthInternalRenderbufferFormat(),
           this.width * this.density,
           this.height * this.density,
