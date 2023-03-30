@@ -116,8 +116,6 @@ class FramebufferCamera extends p5.Camera {
 }
 
 class Framebuffer {
-  static forceWebGL1 = false
-
   constructor(canvas, options = {}) {
     this.canvas = canvas
     this._renderer = canvas._renderer
@@ -533,3 +531,5 @@ class Framebuffer {
     }
   }
 }
+
+Framebuffer.forceWebGL1 = false

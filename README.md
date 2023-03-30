@@ -18,12 +18,12 @@ Add the library to your source code, *after* loading p5 but *before* loading you
 
 ### Via CDN
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.10/p5.Framebuffer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.11/p5.Framebuffer.min.js"></script>
 ```
 
 On OpenProcessing, paste this link into a new library slot:
 ```
-https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.10/p5.Framebuffer.min.js
+https://cdn.jsdelivr.net/npm/@davepagurek/p5.framebuffer@0.0.11/p5.Framebuffer.min.js
 ```
 
 ### Self-hosted
