@@ -18,15 +18,12 @@
     "prettier": "^2.7.1"
   },
   "scripts": {
-    "build:core": "minify p5.Framebuffer.js > p5.Framebuffer.core.min.js",
-    "build:all": "minify p5.Framebuffer.js > p5.Framebuffer.min.js; minify Renderer.js >> p5.Framebuffer.min.js; minify BlurRenderer.js >> p5.Framebuffer.min.js; minify GaussianBlurRenderer.js >> p5.Framebuffer.min.js; minify ContactShadowRenderer.js >> p5.Framebuffer.min.js",
-    "build": "yarn build:core && yarn build:all",
+    "build:all": "minify Renderer.js > p5.FilterRenderer.min.js; minify BlurRenderer.js >> p5.FilterRenderer.min.js; minify GaussianBlurRenderer.js >> p5.FilterRenderer.min.js; minify ContactShadowRenderer.js >> p5.FilterRenderer.min.js",
+    "build": "yarn build:all",
     "publish": "npm publish --access public"
   },
   "files": [
-    "p5.Framebuffer.min.js",
-    "p5.Framebuffer.core.min.js",
-    "p5.Framebuffer.js",
+    "p5.FilterRenderer.min.js",
     "Renderer.js",
     "BlurRenderer.js",
     "GaussianBlurRenderer.js",

@@ -1,7 +1,7 @@
 class ContactShadowRenderer extends Renderer {
   constructor(target, options) {
     super(target, options)
-    if (!this.target._renderer.hasWebGL2) {
+    if (!this.target.webglVersion === WEBGL2) {
       this.target._renderer.GL.getExtension('OES_standard_derivatives')
     }
     this.fbo2 = target.createFramebuffer(options)
@@ -16,7 +16,7 @@ class ContactShadowRenderer extends Renderer {
   }
 
   prefix() {
-    if (this.target._renderer.hasWebGL2) {
+    if (this.target.webglVersion === WEBGL2) {
       return '#version 300 es\n#define IS_WEBGL2\n'
     } else {
       return '#extension GL_OES_standard_derivatives : enable\n'
