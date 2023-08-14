@@ -1,4 +1,4 @@
-⚠️p5.Framebuffer is built into p5.js now and is present in 1.7.0 onwards!⚠️ The library is left here as-is for legacy purposes if one is working on older p5 versions.
+⚠️p5.Framebuffer is [built into p5.js](https://p5js.org/reference/#/p5/createFramebuffer) now and is present in 1.7.0 onwards!⚠️ The library is left here as-is for legacy purposes if one is working on older p5 versions.
 
 If you want to use blur or shadow renderers in 1.7.0 onwards, consider using <a href="https://github.com/davepagurek/p5.filterRenderer">p5.filterRenderer</a>, the spiritual successor to this library.
 
